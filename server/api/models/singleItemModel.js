@@ -15,6 +15,12 @@ const SingleItemSchema = new Schema({
   price: {
     type: Number
   },
+  following: {
+    type: Boolean
+  },
+  pastPrice: {
+    type: Array
+  },
   created_date: {
     type: Date,
     default: Date.now
