@@ -1,11 +1,12 @@
 'use strict';
 const mongoose = require('mongoose');
-const Item = mongoose.model('Item');
+const SingleItem = mongoose.model('SingleItem');
+const Items = mongoose.model('Items');
 
 const puppeteer = require('puppeteer');
 
 exports.get_all_items = (req, res) => {
-  Item.find({}, (err, items) => {
+  SingleItem.find({}, (err, items) => {
     if (err) {
       res.send({
         error: err,
@@ -22,7 +23,7 @@ exports.get_all_items = (req, res) => {
 };
 
 exports.get_single_item = (req, res) => {
-  Item.findById(req.params.itemId, (err, item) => {
+  SingleItem.findById(req.params.itemId, (err, item) => {
     if (err) {
       res.send({
         error: err,
@@ -43,7 +44,7 @@ exports.first_scrape = (req, res) => {
   scraper(url)
     .then(data => {
       if (data) {
-        let newItem = new Item({
+        let newItem = new SingleItem({
           name: data.title,
           link: url,
           imgUrl: data.imgUrl,
@@ -57,6 +58,10 @@ exports.first_scrape = (req, res) => {
               code: 400
             });
           };
+          let itemCollection = new Items({
+            uid: item._id
+          });
+          itemCollection.save();
           res.status(201).json({
             message: 'Item created',
             success: true,
