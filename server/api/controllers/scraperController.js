@@ -78,11 +78,41 @@ exports.first_scrape = (req, res) => {
 };
 
 exports.update_item = (req, res) => {
-  // get item from db
-  // scrape again
-  // update entry
-  // save to db
-  // return to user
+  let id = req.body.id;
+  console.log(id);
+  SingleItem.findById(id, (err, item) => {
+    scraper(item.link).then(data => {
+      if (data) {
+        let newObj = {
+          tite: data.title,
+          price: data.priceInt,
+          date: Date.now().toString()
+        }
+        SingleItem.findOneAndUpdate(
+          { _id: req.body.id }, 
+          { $push: { pastPrices: newObj  } },
+          (err, result) => {
+               if (err) {
+                res.send({
+                  error: err,
+                  message: "Couldn't update item in DB",
+                  success: false,
+                  code: 400
+                });
+               }
+               res.status(200).json({
+                message: 'Item updated',
+                success: true,
+                obj: result
+              });
+            });
+      }
+    }).catch(err => {
+      res.send({
+        msg: 'Error - something went wrong scraping'
+      });
+    });;
+  });
 };
 
 exports.delete_item = (req, res) => {
@@ -92,7 +122,6 @@ exports.delete_item = (req, res) => {
 
 let scraper = async url => {
   console.log('Accessing Amazon to fetch data');
-
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   console.log('Going to chosen URL');
